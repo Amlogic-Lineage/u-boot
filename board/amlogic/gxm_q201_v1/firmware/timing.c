@@ -103,8 +103,8 @@
 #define CONFIG_SOC_VREF    1+ (50+((50*48)/(48+480/(6+1)))) // 880/12  //(50+((50*48)/(48+160)))  //0//50+50*drv/(drv+odt)  (738/12) //0 //0  is auto --70 ---range 44.07---88.04   %
 #define CONFIG_DRAM_VREF  1+ (50+((50*37)/(37+48)))// 860/12 // 0// (810/12) // 0 //77 //0 //0  is auto ---70 --range -- 45---92.50    %
 #elif (CONFIG_DDR_TYPE == CONFIG_DDR_TYPE_LPDDR3)
-#define CONFIG_SOC_VREF  51
-#define CONFIG_DRAM_VREF 51
+#define CONFIG_SOC_VREF  51//(1+ (50+((50*48)/(48+480/(3+1)))))//51
+#define CONFIG_DRAM_VREF 51//(1+ (50+((50*53)/(53+120))))//51
 #else
 #define CONFIG_SOC_VREF  51
 #define CONFIG_DRAM_VREF 51
@@ -475,6 +475,21 @@ ddr_set_t __ddr_setting = {
 								[3]=( 23| 24 << 5 | 25 << 10 | 26 << 15 | 27 << 20 | 30 << 25 ) ,
 								[4]=( 31| 12 << 5 | 13 << 10 | 28 << 15 | 0 << 20 | 0 << 25 ) ,
 	},
+#elif (CONFIG_LPDDR_REMAP_SET ==  LPDDR_DIE_ROW_COL_R14_C10)
+	.ddr0_addrmap			= {
+								[0]=( 5 |  6 << 5 |  7 << 10 |  8 << 15 |  9 << 20 | 10 << 25) ,
+								[1]=( 11| 30 << 5 | 0 << 10 | 14 << 15 | 15 << 20 | 16 << 25 ) ,
+								[2]=( 17| 18 << 5 | 19 << 10 | 20 << 15 | 21<< 20 | 22 << 25 ) ,
+								[3]=( 23| 24 << 5 | 25 << 10 | 26 << 15 | 27 << 20 | 29 << 25 ) ,
+								[4]=( 31| 12 << 5 | 13 << 10 | 28 << 15 | 0 << 20 | 0 << 25 ) ,
+	},
+	.ddr1_addrmap			= {
+								[0]=( 5 |  6 << 5 |  7 << 10 |  8 << 15 |  9 << 20 | 10 << 25) ,
+								[1]=( 11| 30 << 5 | 0 << 10 | 14 << 15 | 15 << 20 | 16 << 25 ) ,
+								[2]=( 17| 18 << 5 | 19 << 10 | 20 << 15 | 21<< 20 | 22 << 25 ) ,
+								[3]=( 23| 24 << 5 | 25 << 10 | 26 << 15 | 27 << 20 | 29 << 25 ) ,
+								[4]=( 31| 12 << 5 | 13 << 10 | 28 << 15 | 0 << 20 | 0 << 25 ) ,
+	},
 #endif /*CONFIG_LPDDR_REMAP_SET*/
 #else
 	.ddr0_addrmap			= {0},
@@ -500,7 +515,7 @@ ddr_set_t __ddr_setting = {
 							[3] = (20000 | (136 << 20)),
 							[4] = (1000 | (180 << 16)),
 							},  //PUB PTR0-3
-	.t_pub_odtcr			= 0x00030000,
+	.t_pub_odtcr			= 0x00010000,
 	.t_pub_mr				= {
 							(0X0 | (0X1 << 2) | (0X0 << 3) | (0X0 << 4) | (0X0 << 7) | (0X0 << 8) | (0X7 << 9) | (1 << 12)),
 							(0X6|(1<<6)),
@@ -545,9 +560,10 @@ ddr_set_t __ddr_setting = {
 
 #if (CONFIG_DDR_TYPE == CONFIG_DDR_TYPE_LPDDR3)
 //lpddr3
-	.t_pub_zq0pr			= 0x0ca1c, //0x0ca1c,   //PUB ZQ0PR  //lpddr3
-	.t_pub_zq1pr			= 0x1cf3c,   //PUB ZQ1PR
-	.t_pub_zq2pr			= 0x1cf3c,   //PUB ZQ2PR
+	///**lpddr3 mcp
+	.t_pub_zq0pr			= 0x0ca58, //0x0ca1c,   //PUB ZQ0PR  //lpddr3
+	.t_pub_zq1pr			= 0x1cf39,   //PUB ZQ1PR  38 3b
+	.t_pub_zq2pr			= 0x1cf39,   //PUB ZQ2PR  38
 	.t_pub_zq3pr			= 0x1dd1d,   //PUB ZQ3PR
 
 /* 2layer board
@@ -607,8 +623,8 @@ ddr_set_t __ddr_setting = {
 ///*lpddr3
 #if (CONFIG_DDR_TYPE == CONFIG_DDR_TYPE_LPDDR3)
 	.t_pub_acbdlr0			= 0,  //CK0 delay fine tune  TAKE CARE LPDDR3 ADD/CMD DELAY
-	.t_pub_aclcdlr			= 0,
-	.t_pub_acbdlr3			= 0x2020,//0,  //CK0 delay fine tune b-3f  //lpddr3 tianhe 2016-10-13
+	.t_pub_aclcdlr			= 0xf,
+	.t_pub_acbdlr3			= 0x0,//0,  //CK0 delay fine tune b-3f  //lpddr3 tianhe 2016-10-13
 #elif (CONFIG_DDR_TYPE == CONFIG_DDR_TYPE_DDR4)
 //2layer board DDR4
 	.t_pub_acbdlr0			= 0, //0x3f,
@@ -629,20 +645,20 @@ ddr_set_t __ddr_setting = {
 #if (CONFIG_DDR_TYPE == CONFIG_DDR_TYPE_LPDDR3)
 	//tianhe lpddr3 20161013
 	.wr_adj_per 			= {
-							[0] = 90, //aclcdlr
+							[0] = 100, //aclcdlr
 							[1] = 100,
-							[2] = 120,
-							[3] = 110,
-							[4] = 120,
-							[5] = 105,
+							[2] = 100,
+							[3] = 100,
+							[4] = 100,
+							[5] = 100,
 							},
 	.rd_adj_per				= {
 							[0] = 100,
 							[1] = 100,
-							[2] = 110,
-							[3] = 110,
-							[4] = 110,
-							[5] = 110,},
+							[2] = 100,
+							[3] = 100,
+							[4] = 100,
+							[5] = 100,},
 #else
 	/* P212 */
 	.wr_adj_per				= {
