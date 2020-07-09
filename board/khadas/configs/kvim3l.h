@@ -148,7 +148,6 @@
         "spi_state=0\0"\
         "fusb302_state=0\0"\
         "factory_mac=0\0"\
-        "ext_ethernet=0\0"\
         "reboot_mode_android=""normal""\0"\
         "Irq_check_en=0\0"\
         "fs_type=""rootfstype=ramfs""\0"\
@@ -321,21 +320,17 @@
              "fi;"\
              "\0"\
         "wol_init="\
-            "if test ${ext_ethernet} = 0; then "\
-               "kbi powerstate;"\
-               "kbi trigger wol r;"\
-               "if test ${wol_enable} = 1; then "\
-               "kbi trigger wol w 1;"\
-               "fi;"\
-               "setenv bootargs ${bootargs} wol_enable=${wol_enable};"\
-               "if test ${power_state} = 1; then "\
-               "kbi trigger wol w 1;"\
-               "kbi poweroff;"\
-               "fi;"\
-            "else "\
-               "setenv bootargs ${bootargs} wol_enable=0;"\
-            "fi;"\
-            "\0"\
+             "kbi powerstate;"\
+             "kbi trigger wol r;"\
+             "if test ${wol_enable} = 1; then "\
+             "kbi trigger wol w 1;"\
+             "fi;"\
+             "setenv bootargs ${bootargs} wol_enable=${wol_enable};"\
+             "if test ${power_state} = 1; then "\
+             "kbi trigger wol w 1;"\
+             "kbi poweroff;"\
+             "fi;"\
+             "\0"\
         "display_config="\
              "fdt addr ${dtb_mem_addr}; "\
              "if test ${lcd_exist} = 0; then "\
@@ -360,16 +355,6 @@
                 "setenv serial ${usid};"\
 		"kbi ethmac noprint;"\
 		"setenv bootargs ${bootargs} mac=${eth_mac} androidboot.mac=${eth_mac};"\
-            "fi;"\
-            "\0"\
-        "ext_ethernet_change="\
-            "fdt addr ${dtb_mem_addr}; "\
-            "if test ${ext_ethernet} = 1; then "\
-                "fdt set /ethernet@ff3f0000 internal_phy <1>;"\
-                "fdt set /ethernet@ff3f0000 mc_val <0x4be04>;"\
-            "else "\
-                "fdt set /ethernet@ff3f0000 internal_phy <0>;"\
-                "fdt set /ethernet@ff3f0000 mc_val <0x1629>;"\
             "fi;"\
             "\0"\
         "bcb_cmd="\
@@ -415,7 +400,6 @@
             "run upgrade_key;" \
             "run recovery_key;"\
             "run port_mode_change;"\
-            "run ext_ethernet_change;"\
             "forceupdate;" \
             "bcb uboot-command;"\
             "run switch_bootmode;"
@@ -792,6 +776,8 @@
 
 /* Choose One of Ethernet Type */
 #undef CONFIG_ETHERNET_NONE
+#define ETHERNET_EXTERNAL_PHY
+#undef  ETHERNET_INTERNAL_PHY
 
 #define CONFIG_CMD_AML_MTEST 1
 #if defined(CONFIG_CMD_AML_MTEST)
