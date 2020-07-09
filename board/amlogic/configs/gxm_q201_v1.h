@@ -75,7 +75,7 @@
 //#define CONFIG_AML_IRDETECT_EARLY
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_CNT 4
 #define CONFIG_IR_REMOTE_USE_PROTOCOL 0         // 0:nec  1:duokan  2:Toshiba 3:rca 4:rcmm
-#define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL1 0XE51AFB04 //amlogic tv ir --- power
+#define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL1 0xae517f80 //amlogic tv ir --- power
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL2 0Xffffffff //amlogic tv ir --- ch+
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL3 0xffffffff //amlogic tv ir --- ch-
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL4 0xBA45BD02
@@ -331,8 +331,8 @@
 #define CONFIG_CPU_CLK					1200 //MHz. Range: 600-1800, should be multiple of 24
 
 /* ddr */
-#define CONFIG_DDR_SIZE					0 //MB //0 means ddr size auto-detect
-#define CONFIG_DDR_CLK					912  //MHz, Range: 384-1200, should be multiple of 24
+#define CONFIG_DDR_SIZE					3072 //MB //0 means ddr size auto-detect
+#define CONFIG_DDR_CLK					744  //MHz, Range: 384-1200, should be multiple of 24
 #define CONFIG_DDR4_CLK					1008  //MHz, for boards which use different ddr chip
 #define CONFIG_NR_DRAM_BANKS			1
 /* DDR type setting
@@ -340,14 +340,14 @@
  *    CONFIG_DDR_TYPE_DDR3     : DDR3
  *    CONFIG_DDR_TYPE_DDR4     : DDR4
  *    CONFIG_DDR_TYPE_AUTO     : DDR3/DDR4 auto detect */
-#define CONFIG_DDR_TYPE					CONFIG_DDR_TYPE_AUTO
+#define CONFIG_DDR_TYPE					CONFIG_DDR_TYPE_LPDDR3
 /* DDR channel setting, please refer hardware design.
  *    CONFIG_DDR0_RANK0        : DDR0 rank0
  *    CONFIG_DDR0_RANK01       : DDR0 rank0+1
  *    CONFIG_DDR0_16BIT        : DDR0 16bit mode
  *    CONFIG_DDR0_16BIT_2      : DDR0 16bit mode, 2ranks
  *    CONFIG_DDR_CHL_AUTO      : auto detect RANK0 / RANK0+1 */
-#define CONFIG_DDR_CHANNEL_SET			CONFIG_DDR_CHL_AUTO
+#define CONFIG_DDR_CHANNEL_SET			CONFIG_DDR0_RANK01
 /* ddr functions */
 #define CONFIG_DDR_FULL_TEST			0 //0:disable, 1:enable. ddr full test
 #define CONFIG_CMD_DDR_D2PLL			1 //0:disable, 1:enable. d2pll cmd
