@@ -479,6 +479,9 @@ int checkhw(char * name)
 #endif
 	if (get_cpu_id().family_id == MESON_CPU_MAJOR_ID_GXM) {
 		switch (ddr_size) {
+			case 0xC0000000:
+				strcpy(loc_name, "gxm_q201_3g\0");
+				break;
 			case 0x80000000:
 				strcpy(loc_name, "gxm_q201_2g\0");
 				break;
@@ -496,6 +499,9 @@ int checkhw(char * name)
 	}
 	else {
 		switch (ddr_size) {
+			case 0xC0000000:
+				strcpy(loc_name, "gxl_p231_3g\0");
+				break;
 			case 0x80000000:
 				strcpy(loc_name, "gxl_p231_2g\0");
 				break;
