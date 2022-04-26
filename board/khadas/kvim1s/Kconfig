@@ -1,0 +1,24 @@
+if TARGET_KHADAS_VIM1S
+
+config SYS_SOC
+	default "s4"
+
+config SYS_BOARD
+	default "kvim1s"
+
+config SYS_VENDOR
+	default "khadas"
+
+config SYS_CONFIG_NAME
+	default "kvim1s"
+
+config DTB_BIND_KERNEL
+    bool "load dtb from boot part but not flash rsv"
+    default n
+
+config AML_REBOOT
+       bool "reboot cmd"
+       default y
+       help
+         support uboot reboot cmd
+endif
