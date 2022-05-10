@@ -40,6 +40,7 @@
 #ifdef CONFIG_AML_CVBS
 #include <amlogic/media/vout/aml_cvbs.h>
 #endif
+#include <asm/arch-meson/boot.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -49,7 +50,7 @@ void sys_led_init(void)
 
 int serial_set_pin_port(unsigned long port_base)
 {
-    return 0;
+	return 0;
 }
 
 int dram_init(void)
@@ -91,6 +92,64 @@ int active_clk(void)
 	return 0;
 }
 
+unsigned int get_romcode_boot_id(void)
+{
+	const cpu_id_t cpuid = get_cpu_id();
+	const int familyId   = cpuid.family_id;
+
+	unsigned int boot_id = 0;
+#ifdef SYSCTRL_SEC_STATUS_REG2
+	if (MESON_CPU_MAJOR_ID_SC2 <= familyId && MESON_CPU_MAJOR_ID_C2 != familyId) {
+		boot_id = readl(SYSCTRL_SEC_STATUS_REG2);
+		debug("boot_id 0x%x\n", boot_id);
+		boot_id = (boot_id>>4) & 0xf;
+	}
+	debug("boot_id 0x%x\n", boot_id);
+#endif// #ifdef SYSCTRL_SEC_STATUS_REG2
+
+	return boot_id;
+}
+
+const char *get_boot_source_str(unsigned int boot_id)
+{
+	const char *source;
+
+	switch (boot_id) {
+		case BOOT_DEVICE_EMMC:
+			source = "emmc";
+			break;
+
+		case BOOT_DEVICE_NAND:
+			source = "nand";
+			break;
+
+		case BOOT_DEVICE_SPI:
+			source = "spi";
+			break;
+
+		case BOOT_DEVICE_SD:
+			source = "sd";
+			break;
+
+		case BOOT_DEVICE_USB:
+			source = "usb";
+			break;
+
+		default:
+			source = "unknown";
+	}
+
+	return source;
+}
+
+static void set_boot_source(void)
+{
+	const char *source;
+
+	source = get_boot_source_str(get_romcode_boot_id());
+
+	env_set("boot_source", source);
+}
 
 #ifdef CONFIG_AML_HDMITX20
 static void hdmitx_set_hdmi_5v(void)
@@ -169,6 +228,9 @@ int board_late_init(void)
 #ifdef CONFIG_AML_CVBS
 	cvbs_init();
 #endif
+// Set boot source
+	set_boot_source();
+
 	emmc_quirks();
 
 	aml_board_late_init_tail(NULL);
