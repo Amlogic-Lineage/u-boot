@@ -51,6 +51,8 @@
 #include "version.h"
 #include "eth.h"
 #include "stick_mem.h"
+#include "leds_state.h"
+
 //#include "printf.h"
 #define INT_TEST_NEST_DEPTH  6
 #define INT_TEST_GPIO_NUM  6
@@ -165,6 +167,9 @@ int main(void)
 	stick_mem_init();
 	stick_mem_write(STICK_REBOOT_FLAG, WATCHDOG_REBOOT);
 	vMbInit();
+
+	// Initialize SYS_LED
+        xLedsStateInit();
 
 	// Create timer
 	xSoftTimer = xTimerCreate("Timer", pdMS_TO_TICKS(100), pdTRUE, NULL, vPrintSystemStatus);
