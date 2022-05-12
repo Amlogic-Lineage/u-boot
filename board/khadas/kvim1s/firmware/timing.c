@@ -8,7 +8,7 @@
 #include <asm/arch/ddr_define.h>
 
 /* board clk defines */
-#define CPU_CLK                                 2004
+#define CPU_CLK                                 1512
 //bit 6 adc_channel bit 0-5 adc value,chan 3 value 8 is layer 2
 #define DDR_ID_ACS_ADC   ((3 << 6) | (8))
 
@@ -16,6 +16,8 @@
 #define DDR_RESV_CHECK_ID_ENABLE  0Xfe
 #define SAR_ADC_DDR_ID_BASE   0
 #define SAR_ADC_DDR_ID_STEP   80
+#define CARMEL_BOARD_1G_1G_ADC_ID   SAR_ADC_DDR_ID_BASE + SAR_ADC_DDR_ID_STEP                           //85  0-125 step 0
+#define CARMEL_BOARD_2G_1G_ADC_ID   SAR_ADC_DDR_ID_BASE + SAR_ADC_DDR_ID_STEP + SAR_ADC_DDR_ID_STEP     //167 126-200 step 1
 #define DDR_TIMMING_OFFSET(X) (unsigned int)(unsigned long)(&(((ddr_set_ps0_only_t *)(0))->X))
 #define DDR_TIMMING_OFFSET_SIZE(X) sizeof(((ddr_set_ps0_only_t *)(0))->X)
 #define DDR_TIMMING_TUNE_TIMMING0(DDR_ID, PARA, VALUE) { DDR_ID, DDR_TIMMING_OFFSET(PARA), VALUE, DDR_TIMMING_OFFSET_SIZE(PARA), 0, DDR_RESV_CHECK_ID_ENABLE }
@@ -91,15 +93,15 @@ uint32_t __ddr_parameter_reg_index[] __attribute__ ((section(".ddr_2acs_index"))
 };
 #endif
 
-//#define BOARD_AP223_LPDDR4 1
-//#define S4_LPDDR4_1RANK 1   //use for 1rank lpddr4
+#define BOARD_AP223_LPDDR4 1
+#define S4_LPDDR4_1RANK 1   //use for 1rank lpddr4
 //#define S4_LPDDR4_1RANK_RAYSON_2GB 1
 
 //#define S4_LPDDR4_DONGLE_LAYER_4 1   //use for 1rank lpddr4
 //#define S4_LPDDR4_DONGLE_LAYER_6 1  //use for 1rank lpddr4
 
-#define S4_LPDDR4_2RANK 1
-#define S4_LPDDR4_2RANK_RAYSON_2GB 1
+//#define S4_LPDDR4_2RANK 1
+//#define S4_LPDDR4_2RANK_RAYSON_2GB 1
 //#define S4_LPDDR4_2RANK_FORESEE_2GB 1
 
 #define S4_DDR4_2RANK 1
@@ -118,7 +120,7 @@ ddr_set_ps0_only_t __ddr_setting[] __attribute__ ((section(".ddr_param"))) = {
 		.cfg_board_common_setting.timming_struct_org_size = sizeof(ddr_set_ps0_only_t),
 		.cfg_board_common_setting.timming_struct_real_size = 0,//0
 		.cfg_board_common_setting.fast_boot = { 0 },
-		.cfg_board_common_setting.ddr_func = DDR_FUNC,
+		.cfg_board_common_setting.ddr_func = DDR_FUNC_LP,
 		.cfg_board_common_setting.board_id = CONFIG_BOARD_ID_MASK,
 		.cfg_board_common_setting.DramType = CONFIG_DDR_TYPE_DDR3,
 		.cfg_board_common_setting.dram_rank_config = CONFIG_DDR0_32BIT_RANK0_CH0,
@@ -487,7 +489,7 @@ ddr_set_ps0_only_t __ddr_setting[] __attribute__ ((section(".ddr_param"))) = {
 		.cfg_board_common_setting.timming_struct_org_size = sizeof(ddr_set_ps0_only_t),
 		.cfg_board_common_setting.timming_struct_real_size = 0,
 		.cfg_board_common_setting.fast_boot = {1, 0, 0, 0xc2},
-		.cfg_board_common_setting.ddr_func = DDR_FUNC,
+		.cfg_board_common_setting.ddr_func = DDR_FUNC_LP,
 		.cfg_board_common_setting.board_id = CONFIG_BOARD_ID_MASK,
 		.cfg_board_common_setting.DramType = CONFIG_DDR_TYPE_LPDDR4,
 		.cfg_board_common_setting.dram_rank_config = CONFIG_DDR0_32BIT_RANK0_CH0,
@@ -1206,7 +1208,7 @@ ddr_set_ps0_only_t __ddr_setting[] __attribute__ ((section(".ddr_param"))) = {
 		.cfg_board_common_setting.timming_struct_org_size = sizeof(ddr_set_ps0_only_t),
 		.cfg_board_common_setting.timming_struct_real_size = 0,//0
 		.cfg_board_common_setting.fast_boot = {0, 0, (1 << 3) | (2)},
-		.cfg_board_common_setting.ddr_func = DDR_FUNC,
+		.cfg_board_common_setting.ddr_func = DDR_FUNC_LP,
 		.cfg_board_common_setting.board_id = CONFIG_BOARD_ID_MASK,
 		.cfg_board_common_setting.DramType = CONFIG_DDR_TYPE_DDR4,
 		.cfg_board_common_setting.dram_rank_config = CONFIG_DDR0_32BIT_RANK01_CH0,
@@ -1492,7 +1494,7 @@ ddr_set_ps0_only_t __ddr_setting[] __attribute__ ((section(".ddr_param"))) = {
 		.cfg_board_common_setting.timming_struct_org_size = sizeof(ddr_set_ps0_only_t),
 		.cfg_board_common_setting.timming_struct_real_size = 0,//0
 		.cfg_board_common_setting.fast_boot = {0, 0, (1 << 3) | (4)},
-		.cfg_board_common_setting.ddr_func = DDR_FUNC,
+		.cfg_board_common_setting.ddr_func = DDR_FUNC_LP,
 		.cfg_board_common_setting.board_id = CONFIG_BOARD_ID_MASK,
 		.cfg_board_common_setting.DramType = CONFIG_DDR_TYPE_DDR4,
 		.cfg_board_common_setting.dram_rank_config = CONFIG_DDR0_32BIT_RANK0_CH0,
@@ -2184,7 +2186,7 @@ __attribute__ ((section(".clk_param"))) = {
 #endif
 
 bl2_reg_t __bl2_reg[] __attribute__ ((section(".generic_param"))) = {
-	//need fine tune
+	//hxbao, need fine tune
 	{ 0, 0, 0xffffffff, 0, 0, 0 },
 };
 
@@ -2193,14 +2195,9 @@ register_ops_t __bl2_ops_reg[MAX_REG_OPS_ENTRIES]
 __attribute__ ((section(".misc_param"))) = {
 	/* config vddee and vcck pwm - pwm_h and pwm_j*/
 #ifdef CONFIG_PDVFS_ENABLE
-	/* s4 set vddee */
 	{PWMGH_PWM_B, 0x8000a, 0xffffffff, 0, BL2_INIT_STAGE_VDDCORE_CONFIG_1, 0},
 	{PWMGH_PWM_B, 0x5000d, 0xffffffff, 0, BL2_INIT_STAGE_VDDCORE_CONFIG_2, 0},
 	{PWMGH_PWM_B, 0x20010, 0xffffffff, 0, BL2_INIT_STAGE_VDDCORE_CONFIG_3, 0},
-	/* s4d set vddee */
-	{PWMGH_PWM_B, 0x7000b, 0xffffffff, 0, BL2_INIT_STAGE_VDDCORE_CONFIG_4, 0},
-	{PWMGH_PWM_B, 0x5000d, 0xffffffff, 0, BL2_INIT_STAGE_VDDCORE_CONFIG_5, 0},
-	{PWMGH_PWM_B, 0x3000f, 0xffffffff, 0, BL2_INIT_STAGE_VDDCORE_CONFIG_6, 0},
 #else
 	{PWMGH_PWM_B, VDDEE_VAL_REG, 0xffffffff, 0, 0, 0},
 #endif
@@ -2216,12 +2213,6 @@ __attribute__ ((section(".misc_param"))) = {
 	{ PADCTRL_PIN_MUX_REGI,	   (0x3 << 0),	  (0xf << 0), 0, 0, 0 },
 	{ PADCTRL_PIN_MUX_REGI,	   (0x3 << 4),	  (0xf << 4), 0, 0, 0 },
 	{ PADCTRL_GPIOD_PULL_UP,   (0x1 << 2),	  (0x1 << 2), 0, 0, 0 },
-#ifdef CONFIG_NOVERBOSE_BUILD
-	/* use acs flag to disable uart print in each blx
-	 * reg must be UART_B_WFIFO, flags: 1 --> disable uart print, 0: enable
-	 */
-	{ UART_B_WFIFO, 0, 0xffffffff, 0, 1, 0 },
-#endif
 };
 
 #define DEV_FIP_SIZE 0x300000
