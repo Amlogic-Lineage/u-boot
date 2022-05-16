@@ -383,22 +383,17 @@ const struct mtd_partition *get_spinand_partition_table(int *partitions)
 }
 #endif /* CONFIG_SPI_NAND */
 
-#ifdef CONFIG_MULTI_DTB
+//#ifdef CONFIG_MULTI_DTB
 int checkhw(char * name)
 {
 	char dtb_name[64] = {0};
-	cpu_id_t  cpu_id = get_cpu_id();
-
-	if (0x3A == cpu_id.family_id)
-		strcpy(dtb_name, "s4d_s905y4_ap222\0");
-	else if (0x37 == cpu_id.family_id)
-		strcpy(dtb_name, "s4_s905y4_ap222\0");
-
+	printf("board checkhw \n");
+	strcpy(dtb_name, "kvim1s\0");
 	strcpy(name, dtb_name);
 	env_set("aml_dt", dtb_name);
 	return 0;
 }
-#endif
+//#endif
 
 
 int __attribute__((weak)) mmc_initialize(bd_t *bis){ return 0;}

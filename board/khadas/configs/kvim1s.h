@@ -106,7 +106,7 @@
         "cvbs_drv=0\0"\
         "osd_reverse=0\0"\
         "video_reverse=0\0"\
-        "board=oppen\0"\
+        "board=kvim1s\0"\
 	"upgrade_key_flag=2\0"\
         "initargs="\
 		"init=/init " CONFIG_KNL_LOG_LEVEL "console=ttyS0,921600 no_console_suspend "\
@@ -385,7 +385,7 @@
 //Replace avb2 software SHA256 to utilize armce
 #define CONFIG_AVB2_UBOOT_SHA256
 
-#define CONFIG_MULTI_DTB    1
+#define CONFIG_MULTI_DTB    0
 
 /* support secure boot */
 #define CONFIG_AML_SECURE_UBOOT   1
