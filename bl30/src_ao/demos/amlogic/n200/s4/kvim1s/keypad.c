@@ -81,9 +81,6 @@ struct xAdcKeyInfo adcKeyInfo[] = {
 
 void vKeyPadInit(void)
 {
-	vCreateAdcKey(adcKeyInfo,
-			sizeof(adcKeyInfo)/sizeof(struct xAdcKeyInfo));
-	vAdcKeyEnable();
 	vCreateGpioKey(gpioKeyInfo,
 			sizeof(gpioKeyInfo)/sizeof(struct xGpioKeyInfo));
 	vGpioKeyEnable();
@@ -91,8 +88,6 @@ void vKeyPadInit(void)
 
 void vKeyPadDeinit(void)
 {
-	vAdcKeyDisable();
-	vDestroyAdcKey();
 	vGpioKeyDisable();
 	vDestroyGpioKey();
 }
