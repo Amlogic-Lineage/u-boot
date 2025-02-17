@@ -301,3 +301,4 @@ endif
 # Khadas boards
 
 source "board/khadas/kvim4/Kconfig"
+source "board/khadas/kvim1s/Kconfig"
