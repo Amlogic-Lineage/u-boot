@@ -496,11 +496,11 @@ static int mtd_store_count(void)
 {
 #if defined(CONFIG_CMD_MTDPARTS)
 	if (mtdparts_init())
-#endif
 #ifdef CONFIG_AML_MTDPART
 	return get_aml_mtdpart_count();
 	else
 	return 0;
+#endif
 #else
 	return 0;
 #endif
