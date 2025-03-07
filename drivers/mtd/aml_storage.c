@@ -499,6 +499,8 @@ static int mtd_store_count(void)
 #endif
 #ifdef CONFIG_AML_MTDPART
 	return get_aml_mtdpart_count();
+	else
+	return 0;
 #else
 	return 0;
 #endif
