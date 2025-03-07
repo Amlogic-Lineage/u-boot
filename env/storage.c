@@ -7,19 +7,25 @@
 #include <memalign.h>
 #include <errno.h>
 #include <amlogic/storage.h>
+#if defined(CONFIG_KHADAS_VIM1S) || defined(CONFIG_KHADAS_VIM4)
 #include <asm/arch-meson/boot.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if defined(CONFIG_KHADAS_VIM1S) || defined(CONFIG_KHADAS_VIM4)
 extern unsigned int get_romcode_boot_id(void);
 extern const char *get_boot_source_str(unsigned int boot_id);
+#endif
 
 #ifdef CONFIG_CMD_SAVEENV
 static int env_storage_save(void)
 {
+#if defined(CONFIG_KHADAS_VIM1S) || defined(CONFIG_KHADAS_VIM4)
 	int boot_id = get_romcode_boot_id();
 
 	if (BOOT_DEVICE_SPI != boot_id && BOOT_DEVICE_SD != boot_id) {
+#endif
 	if (store_get_type() == BOOT_NONE) {
 		printf("env_storage: must init before save\n");
 		return -ENOENT;
@@ -32,10 +38,12 @@ static int env_storage_save(void)
 
 	if (store_rsv_write(RSV_ENV, CONFIG_ENV_SIZE, (void *)env_new)) {
 		printf("env_storage: write failed\n");
+#if defined(CONFIG_KHADAS_VIM1S) || defined(CONFIG_KHADAS_VIM4)
 			return -EIO;
 		}
 	} else {
 		printf("Current boot device: %s, do not save env to eMMC.\n", get_boot_source_str(get_romcode_boot_id()));
+#endif
 		return -EIO;
 	}
 
@@ -45,9 +53,11 @@ static int env_storage_save(void)
 
 static int env_storage_load(void)
 {
+#if defined(CONFIG_KHADAS_VIM1S) || defined(CONFIG_KHADAS_VIM4)
 	int boot_id = get_romcode_boot_id();
 
 	if (BOOT_DEVICE_SPI != boot_id && BOOT_DEVICE_SD != boot_id) {
+#endif
 		if (store_get_type() == BOOT_NONE) {
 			printf("env_storage: must init before load\n");
 			return -ENOENT;
@@ -62,6 +72,7 @@ static int env_storage_load(void)
 			set_default_env("!env_storage: import failed", 0);
 			return -EINVAL;
 		}
+#if defined(CONFIG_KHADAS_VIM1S) || defined(CONFIG_KHADAS_VIM4)
 	} else {
 		char str[64];
 
@@ -69,6 +80,7 @@ static int env_storage_load(void)
 
 		set_default_env(str, 0);
 	}
+#endif
 
 	return 0;
 }
