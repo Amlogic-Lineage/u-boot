@@ -40,8 +40,8 @@ declare BL33_PATH3="bl33/v2023"
 #declare BL33_DEFCFG2="${UBOOT_FOLDER}/${UBOOT_VERSION2}/${DEFCFG_FOLDER}"
 #declare BL33_DEFCFG3="${UBOOT_FOLDER}/${UBOOT_VERSION3}/${DEFCFG_FOLDER3}"
 declare BL33_DEFCFG1="board/khadas/defconfigs"
-declare BL33_DEFCFG2="board/khadas/defconfigs"
-declare BL33_DEFCFG3="board/khadas/defconfigs"
+declare BL33_DEFCFG2="board/amlogic/defconfigs"
+#declare BL33_DEFCFG3="board/khadas/defconfigs"
 
 declare FIP_DDR_PARSE="${FIP_FOLDER}/tools/ddr_parse/"
 # current branch/path/rev/name/remote in xml
