@@ -178,7 +178,7 @@ static int eth_get_efuse_mac(struct eth_device *dev)
 #endif
 }
 static char env_str[32];
-int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
+static int __eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 		   int eth_number)
 {
 	unsigned char env_enetaddr[ARP_HLEN];
@@ -251,6 +251,36 @@ int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 			printf("\nWarning: %s failed to set MAC address\n",
 			       dev->name);
 	}
+
+	return ret;
+}
+
+/*
+ * __eth_write_hwaddr() publishes the address it derives by writing "ethaddr",
+ * but 2019.01 also registers the on_ethaddr() callback above - which reacts to
+ * that write by calling back in here, which sets "ethaddr" again, and so on
+ * until the stack is gone. 2015.01 had no such callback, so the Amlogic
+ * env_set("ethaddr", ...) calls were safe there. The recursion is silent: the
+ * board dies between "MACADDR:...(from chipid)" and the autoboot prompt, with
+ * only the repeated key_unify_init() banners of eth_get_efuse_mac() to show
+ * for it.
+ *
+ * Refusing to re-enter loses nothing. The callback has already done its own
+ * work (parsing the new value into dev->enetaddr) before it recurses, and the
+ * outer call still reaches dev->write_hwaddr() once env_set() returns.
+ */
+int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
+		   int eth_number)
+{
+	static int in_progress;
+	int ret;
+
+	if (in_progress)
+		return 0;
+
+	in_progress = 1;
+	ret = __eth_write_hwaddr(dev, base_name, eth_number);
+	in_progress = 0;
 
 	return ret;
 }
