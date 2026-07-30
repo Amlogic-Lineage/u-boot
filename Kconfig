@@ -518,6 +518,20 @@ config ARCH_FIXUP_FDT_MEMORY
 	  used for booting OS with different memory setup where the part of
 	  the memory location should be used for different purpose.
 
+config MESON_FIXUP_FDT_MEMORY
+	bool "Let u-boot supply the /memory node on Amlogic boards"
+	depends on ARCH_MESON && ARCH_FIXUP_FDT_MEMORY
+	help
+	  Amlogic switched arch_fixup_fdt() off for the whole of ARCH_MESON
+	  ("uboot2019: no fdt fix memory required") because on their newer SoCs
+	  the kernel device tree already carries a memory@<addr> node with a
+	  "reg" and the fixup was overwriting it. Older kernels do not: the 4.9
+	  kvim3.dts has no memory node at all, and without a /memory node the
+	  kernel comes up with an empty memblock - every reserved-memory
+	  allocation fails and paging_init() panics with "Failed to allocate
+	  0x1000 bytes below 0x0". Enable this on boards whose kernel expects
+	  u-boot to describe DRAM.
+
 endmenu		# Boot images
 
 source "api/Kconfig"

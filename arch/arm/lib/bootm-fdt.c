@@ -34,8 +34,15 @@ __weak int fdt_update_ethernet_dt(void *blob)
 int arch_fixup_fdt(void *blob)
 {
 	__maybe_unused int ret = 0;
+/*
+ * The ARCH_MESON exclusion below comes from Amlogic: on t7c the kernel dtb
+ * already describes DRAM and fdt_fixup_memory_banks() was clobbering it. The
+ * 4.9 kvim3.dts has no memory node at all, so kvim3 needs the fixup back -
+ * see CONFIG_MESON_FIXUP_FDT_MEMORY.
+ */
 #if ((defined(CONFIG_ARMV7_NONSEC) || defined(CONFIG_OF_LIBFDT)) && \
-		!defined(CONFIG_ARCH_MESON))
+		(!defined(CONFIG_ARCH_MESON) || \
+		 defined(CONFIG_MESON_FIXUP_FDT_MEMORY)))
 	bd_t *bd = gd->bd;
 	int bank;
 	u64 start[CONFIG_NR_DRAM_BANKS];
