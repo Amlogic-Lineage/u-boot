@@ -97,3 +97,5 @@ obj-$(CONFIG_CMD_PMU) += cmd_pmic.o
 obj-$(CONFIG_CMD_RMA) += cmd_rma.o
 # khadas commands
 obj-$(CONFIG_KHADAS_KBI) += cmd_kbi.o
+obj-$(CONFIG_KHADAS_CFGLOAD) += cmd_cfgload.o
+obj-$(CONFIG_KHADAS_SCRIPT) += cmd_script.o

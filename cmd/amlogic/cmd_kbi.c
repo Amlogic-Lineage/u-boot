@@ -20,6 +20,7 @@
 #include <dm/uclass.h>
 #include <asm/io.h>
 #include <asm/arch/bl31_apis.h>
+#include <khadas_tca6408.h>	/* TCA_TP_RST_MASK, tca6408_output_set_value() */
 
 #define SCPI_CMD_SDCARD_BOOT   0xB2
 #define CHIP_ADDR              0x18
@@ -92,10 +93,18 @@
 #define  HW_VERSION_VIM4_V12             0x42
 
 #define HW_RECOVERY_KEY_ADC              0x82
-#define MCU_I2C_BUS_NUM                  6
 #define setenv env_set
 #define getenv env_get
+
+/*
+ * DM i2c bus the KBI MCU sits on. On VIM3/VIM3L the MCU is on the AO i2c
+ * controller, which the g12a/g12b device trees alias as i2c4.
+ */
+#if defined(CONFIG_KHADAS_VIM3) || defined(CONFIG_KHADAS_VIM3L)
+#define MCU_I2C_BUS_NUM				4
+#else
 #define MCU_I2C_BUS_NUM				6
+#endif
 
 static int vim4_flag = 1;
 
@@ -1084,10 +1093,27 @@ static int do_kbi_led(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[]
 	return ret;
 }
 
+/*
+ * Touch-panel / M2X / camera i2c. On both VIM3(L) and VIM4 this is i2c3, which
+ * the device trees alias as bus 3. The 2015 VIM3 bootloader bit-banged the same
+ * pins by hand (PREG_PAD_GPIO5 bits 14/15 + PERIPHS_PIN_MUX_E bits 24..31,
+ * i.e. GPIOA_14/GPIOA_15) because it had no driver-model i2c; those are exactly
+ * the "i2c3_sda_a"/"i2c3_sck_a" groups of &i2c3_master_pins2, so the controller
+ * can do the work here.
+ *
+ * The chip addresses differ per board: VIM3's TS101 carries a GT9xx at 0x5d,
+ * VIM4's is at 0x14.
+ */
 #ifdef CONFIG_DM_I2C
 #define TP_I2C_BUS_NUM 3
 #define TP05_CHIP_ADDR "0x38"
+#if defined(CONFIG_KHADAS_VIM3) || defined(CONFIG_KHADAS_VIM3L)
+#define TP10_CHIP_ADDR "0x5d"
+#define M2X_CHIP_ADDR  "0x10"	/* ES8316 codec on the M2X extension */
+#else
 #define TP10_CHIP_ADDR "0x14"
+#endif
+#define CAMERA_CHIP_ADDR "0x0c"
 static struct udevice *i2c_cur_bus;
 int khadas_mipi_id = 0;//NULL
 
@@ -1169,6 +1195,90 @@ static int tp_i2c_read(uint reg, const char *cp)
        return ret;
 }
 
+#if defined(CONFIG_KHADAS_VIM3) || defined(CONFIG_KHADAS_VIM3L)
+/*
+ * VIM3/VIM3L panel detect. Same probe order as VIM4 below, but the panel names
+ * handed to the kernel are the "lcd_N" ones this board's dtb actually has - the
+ * VIM4 code sets "mipi_N", which makes lcd_probe() fail with
+ * "not find /lcd/mipi_0 node". There is no connector0_type here either.
+ */
+static int do_check_panel(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+{
+	/* pulse the touch controller's reset so it answers on i2c */
+	tca6408_output_set_value(TCA_TP_RST_MASK, TCA_TP_RST_MASK);
+	mdelay(5);
+	tca6408_output_set_value(0, TCA_TP_RST_MASK);
+	mdelay(20);
+	tca6408_output_set_value(TCA_TP_RST_MASK, TCA_TP_RST_MASK);
+	mdelay(50);
+
+	khadas_mipi_id = tp_i2c_read(0xA8, TP05_CHIP_ADDR);
+	printf("TP050 id=0x%x\n", khadas_mipi_id);
+	if (khadas_mipi_id == 0x51) {		/* old TS050 */
+		khadas_mipi_id = 1;
+		setenv("khadas_mipi_id", "1");
+		setenv("panel_type", "lcd_1");
+	} else if (khadas_mipi_id == 0x79) {	/* new TS050 */
+		khadas_mipi_id = 3;
+		setenv("khadas_mipi_id", "3");
+		setenv("panel_type", "lcd_3");
+	} else {
+		khadas_mipi_id = tp_i2c_read(0x9e, TP10_CHIP_ADDR);
+		printf("TP101 id=0x%x\n", khadas_mipi_id);
+		if (khadas_mipi_id == 0x00) {	/* TS101 */
+			khadas_mipi_id = 2;
+			setenv("khadas_mipi_id", "2");
+			setenv("panel_type", "lcd_2");
+		} else {			/* nothing attached */
+			khadas_mipi_id = 0;
+			setenv("khadas_mipi_id", "0");
+			setenv("panel_type", "lcd_1");
+		}
+	}
+	printf("panel_type=%s khadas_mipi_id=%d   id=0---default old TS050   id=1,lcd_1---old TS050   id=2,lcd_2---TS101   id=3,lcd_3---new TS050\n",
+			getenv("panel_type"), khadas_mipi_id);
+	return 0;
+}
+
+/*
+ * M2X extension board detect: its ES8316 audio codec answers at 0x10 on the
+ * same bus as the panel. Sets m2x_board_exist, which storeargs passes on in
+ * bootargs.
+ */
+static int do_check_m2x(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+{
+	int khadas_m2x_id = tp_i2c_read(0x10, M2X_CHIP_ADDR);
+
+	printf("M2X id=0x%x\n", khadas_m2x_id);
+	if (khadas_m2x_id == 0x1) {
+		khadas_m2x_id = 1;
+		setenv("khadas_m2x_id", "1");
+		setenv("m2x_board_exist", "1");
+	} else {
+		khadas_m2x_id = 0;
+		setenv("khadas_m2x_id", "0");
+		setenv("m2x_board_exist", "0");
+	}
+	printf("m2x_board_exist=%s khadas_m2x_id=%d   id=0---no M2X   id=1---M2X exists\n",
+			getenv("m2x_board_exist"), khadas_m2x_id);
+	return 0;
+}
+
+static int do_check_camera(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+{
+	int khadas_camera_id = tp_i2c_read(0x00, CAMERA_CHIP_ADDR);
+
+	printf("khadas camera id=0x%x\n", khadas_camera_id);
+	if (khadas_camera_id == 0x00) {
+		setenv("khadas_camera_id", "2");	/* IMX415 */
+	} else {
+		setenv("khadas_camera_id", "1");	/* OS08A10 */
+	}
+	printf("khadas_camera_id=%s   id=1---is OS08A10   id=2---is IMX415\n",
+			getenv("khadas_camera_id"));
+	return 0;
+}
+#else
 static int do_check_panel(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	khadas_mipi_id = tp_i2c_read(0xA8,TP05_CHIP_ADDR);
@@ -1220,6 +1330,7 @@ static int do_check_camera(cmd_tbl_t * cmdtp, int flag, int argc, char * const a
 	printf("khadas_camera_id=%s   id=1---is OS08A10   id=2---is IMX415\n", getenv("khadas_camera_id"));
 	return 0;
 }
+#endif /* CONFIG_KHADAS_VIM3 || CONFIG_KHADAS_VIM3L */
 
 static int get_ircode(char reg)
 {
@@ -1496,13 +1607,25 @@ static cmd_tbl_t cmd_kbi_sub[] = {
 	U_BOOT_CMD_MKENT(factorytest, 1, 1, do_kbi_factorytest, "", ""),
 	U_BOOT_CMD_MKENT(check_panel, 1, 1, do_check_panel, "", ""),
 	U_BOOT_CMD_MKENT(check_camera, 1, 1, do_check_camera, "", ""),
+#if defined(CONFIG_KHADAS_VIM3) || defined(CONFIG_KHADAS_VIM3L)
+	U_BOOT_CMD_MKENT(check_m2x, 1, 1, do_check_m2x, "", ""),
+#endif
 };
 
 static int do_kbi(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	cmd_tbl_t *c;
+	char cmd[16];
+
 	mcu_i2c_probe(MCU_I2C_BUS_NUM);
-	run_command("i2c dev 6", 0);
+	/*
+	 * Some kbi subcommands still talk to the MCU through the "i2c" command
+	 * rather than mcu_i2c_*(), so the current bus has to be selected too.
+	 * This used to be hardcoded to VIM4's bus 6, which on VIM3/VIM3L just
+	 * printed "Failure changing bus number (-19)" on every kbi call.
+	 */
+	sprintf(cmd, "i2c dev %d", MCU_I2C_BUS_NUM);
+	run_command(cmd, 0);
 	//printf("hlm do_kbi\n");
 #ifdef CONFIG_KHADAS_VIM
 	int hw_ver = 0;
@@ -1553,6 +1676,9 @@ static char kbi_help_text[] =
 		"kbi powerstate - read power on state\n"
 		"kbi check_panel - check TS050 or TS101\n"
 		"kbi check_camera - t7c check OS08A10 or IMX415\n"
+#if defined(CONFIG_KHADAS_VIM3) || defined(CONFIG_KHADAS_VIM3L)
+		"kbi check_m2x - check M2X\n"
+#endif
 		"kbi poweroff - power off device\n"
 		"kbi ethmac - read ethernet mac address\n"
 		"kbi hwver - read board hardware version\n"

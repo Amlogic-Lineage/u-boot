@@ -192,8 +192,12 @@ endchoice
 config SYS_MALLOC_F_LEN
 	default 0x1000
 
-source "board/amlogic/Kconfig"
+# Khadas is sourced first so that its SYS_BOARD/SYS_CONFIG_NAME defaults take
+# precedence when a TARGET_KHADAS_* board is selected. Amlogic's per-SoC board
+# "choice" entries always elect a default board (e.g. s4_skt), which would
+# otherwise win and silently build the wrong board.
+source "board/khadas/Kconfig"
 
-#source "board/khadas/Kconfig"
+source "board/amlogic/Kconfig"
 
 endif

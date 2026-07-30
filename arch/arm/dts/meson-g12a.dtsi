@@ -870,43 +870,59 @@
 	};
 };
 
+/*
+ * meson_saradc_clk_init() looks up "xtal", "adc_mux", "adc_div" and "adc_gate"
+ * (see drivers/adc/meson-saradc.c) and then reparents adc_mux onto xtal and
+ * sets the adc_div rate. The old "clkin" name matched none of them, so the ADC
+ * clock was never configured and every channel read timed out.
+ *
+ * The mux/div/gate all live in AO_SAR_CLK (0x90), an AO-domain register, so
+ * they must be requested from &clkc_AO - meson_set_gate_by_id() and friends
+ * add the offset to the clock controller's own reg base, and &clkc is the
+ * hiubus one at 0xff63c000.
+ */
 &saradc {
 	compatible = "amlogic,meson-g12a-saradc", "amlogic,meson-saradc";
-	clocks = <&xtal>;
-	/*
-		 //<&clkc CLKID_SAR_ADC>,
-		 //<&clkc CLKID_SANA>,
-		 //<&clkc CLKID_SAR_ADC_CLK>,
-		 //<&clkc CLKID_SAR_ADC_SEL>;*/
-	clock-names = "clkin";
-	//"core", "sana", "adc_clk", "adc_sel";
+	clocks = <&xtal>,
+		 <&clkc_AO CLKID_SARADC_MUX>,
+		 <&clkc_AO CLKID_SARADC_DIV>,
+		 <&clkc_AO CLKID_SARADC_GATE>;
+	clock-names = "xtal", "adc_mux", "adc_div", "adc_gate";
 };
 
+/*
+ * meson_gx_mmc looks its clocks up by the names "clkin" (the fast parent,
+ * FCLK_DIV2), "xtal" (the 24MHz parent), "mux", "div" and "gate", and does
+ * not check the result. The old "clkin0"/"clkin1" names left host->xtal and
+ * host->div2 zeroed, so clk_enable(&host->xtal) dereferenced a NULL clk->dev
+ * and took a synchronous abort in meson_mmc_probe(). Same names/roles as
+ * meson-s4.dtsi. "core" is kept for documentation; the driver never reads it.
+ */
 &sd_emmc_a {
 	clocks = <&clkc CLKID_SD_EMMC_A>,
-		 <&xtal>,
+		 <&clkc CLKID_XTAL>,
 		 <&clkc CLKID_FCLK_DIV2>;
-	clock-names = "core", "clkin0", "clkin1";
+	clock-names = "core", "xtal", "clkin";
 };
 
 &sd_emmc_b {
 	clocks = <&clkc CLKID_SD_EMMC_B>,
-			<&xtal>,
+			<&clkc CLKID_XTAL>,
 			<&clkc CLKID_FCLK_DIV2>,
 			<&clkc CLKID_SD_EMMC_B_P0_MUX>,
 			<&clkc CLKID_SD_EMMC_B_P0_DIV>,
 			<&clkc CLKID_SD_EMMC_B_P0_GATE>;
-	clock-names = "core", "clkin0", "clkin1", "mux", "div", "gate";
+	clock-names = "core", "xtal", "clkin", "mux", "div", "gate";
 };
 
 &sd_emmc_c {
 	clocks = <&clkc CLKID_SD_EMMC_C>,
-			<&xtal>,
+			<&clkc CLKID_XTAL>,
 			<&clkc CLKID_FCLK_DIV2>,
 			<&clkc CLKID_SD_EMMC_C_P0_MUX>,
 			<&clkc CLKID_SD_EMMC_C_P0_DIV>,
 			<&clkc CLKID_SD_EMMC_C_P0_GATE>;
-	clock-names = "core", "clkin0", "clkin1", "mux", "div", "gate";
+	clock-names = "core", "xtal", "clkin", "mux", "div", "gate";
 
 };
 

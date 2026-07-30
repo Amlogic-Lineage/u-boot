@@ -63,3 +63,4 @@ obj-$(CONFIG_TWL4030_LED) += twl4030_led.o
 obj-$(CONFIG_VEXPRESS_CONFIG) += vexpress_config.o
 obj-$(CONFIG_WINBOND_W83627) += winbond_w83627.o
 obj-$(CONFIG_JZ4780_EFUSE) += jz4780_efuse.o
+obj-$(CONFIG_TCA6408) += khadas_tca6408.o

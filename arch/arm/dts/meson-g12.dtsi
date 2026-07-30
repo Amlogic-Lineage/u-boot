@@ -387,22 +387,39 @@
 			};
 		};
 
-		aobus: aobus@fe000000 {
+		/*
+		 * The G12A/G12B AO bus is at 0xff800000; 0xfe000000 is the
+		 * S4/T7 map. With the wrong base every AO child resolved out
+		 * of range - uart_AO landed at 0xfe001c00, so the DM console
+		 * spun forever on AML_UART_TX_FULL and the watchdog reset the
+		 * board right after serial_init().
+		 */
+		aobus: aobus@ff800000 {
 			compatible = "simple-bus";
-			reg = <0x0 0xfe000000 0x0 0x100000>;
+			reg = <0x0 0xff800000 0x0 0x100000>;
 			#address-cells = <2>;
 			#size-cells = <2>;
-			ranges = <0x0 0x0 0x0 0xfe000000 0x0 0x100000>;
+			ranges = <0x0 0x0 0x0 0xff800000 0x0 0x100000>;
 
 			clkc_AO: clock-controller@0 {
 				compatible = "amlogic,g12a-aoclkc";
 				reg = <0x0 0x0 0x0 0x320>;
 				#clock-cells = <1>;
+				/*
+				 * meson_clk_probe() does clk_get_by_name(dev, "xtal")
+				 * without checking, and meson_clk_get_rate_by_id()
+				 * resolves CLKID_XTAL through it. Without this the
+				 * pointer stays NULL and any clk_set_rate() on an AO
+				 * div (e.g. the saradc one) aborts in clk_get_rate().
+				 */
+				clocks = <&xtal>;
+				clock-names = "xtal";
 			};
 
-			uart_AO: serial@1c00 {
+			/* 0xff803000 - matches CONFIG_DEBUG_UART_BASE */
+			uart_AO: serial@3000 {
 				compatible = "amlogic,meson-uart";
-				reg = <0x0 0x1c00 0x0 0x14>;
+				reg = <0x0 0x3000 0x0 0x14>;
 				interrupts = <GIC_SPI 193 IRQ_TYPE_EDGE_RISING>;
 				clocks = <&xtal>;
 				status = "disabled";
@@ -421,7 +438,14 @@
 				reg = <0x0 0x05000 0x0 0x20>;
 				#address-cells = <1>;
 				#size-cells = <0>;
-				clocks = <&clkc CLKID_AO_I2C>;
+				/*
+				 * CLKID_AO_I2C gates AO_CLK_GATE0 (0x4c) bit 2, an
+				 * AO-domain register, so it has to come from &clkc_AO
+				 * (base 0xff800000) - &clkc is the hiubus controller at
+				 * 0xff63c000 and the gate write would land in the wrong
+				 * block.
+				 */
+				clocks = <&clkc_AO CLKID_AO_I2C>;
 				clock-names = "clk_i2c";
 				status = "disabled";
 			};
@@ -517,6 +541,7 @@
 			#size-cells = <2>;
 			ranges = <0x0 0x0 0x0 0xffe01000 0x0 0x7f000>;
 
+			/* clocks are attached in meson-g12{a,b}.dtsi */
 			sd_emmc_a: sdio {
 				compatible = "";
 				reg = <0x0 0x2000 0x0 0x800>;

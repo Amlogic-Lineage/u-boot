@@ -1,0 +1,76 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Khadas VIM3 (A311D / G12B)
+ *
+ * Derived from meson-g12b-a311d-w400.dts. This device tree is only used by
+ * u-boot's driver model (pinctrl, mmc, i2c, ...); the kernel device tree is
+ * loaded at runtime from the "dtb" partition, not from here.
+ */
+
+/dts-v1/;
+
+#include "meson-g12b-a311d-w400.dtsi"
+#include "meson-g12b_skt-panel.dtsi"
+
+/ {
+	compatible = "khadas,vim3", "amlogic,a311d", "amlogic,meson-g12b";
+	model = "Khadas VIM3";
+};
+
+/* Brought out to the 40-pin GPIO header */
+&uart_AO {
+	status = "okay";
+};
+
+&saradc {
+	status = "okay";
+};
+
+/*
+ * i2c3 on GPIOA_14/GPIOA_15, alias i2c3. The vendor kernel leaves this
+ * disabled, but u-boot needs it: the touch controller of the TS050/TS101
+ * panels (0x38 / 0x5d), the M2X extension board's codec (0x10) and the MIPI
+ * camera (0x0c) all live here, and "kbi check_panel"/"check_m2x" read them.
+ * The 2015 bootloader bit-banged these two pins by hand for the same purpose.
+ */
+&i2c3 {
+	status = "okay";
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c3_master_pins2>;
+};
+
+/*
+ * AO i2c, alias i2c4 (see the aliases node in meson-g12b-a311d-w400.dtsi).
+ * Carries the KBI MCU at 0x18 and the TCA6408 GPIO expander at 0x20 - see
+ * &i2c_AO in the vendor kernel's kvim3.dts. Without this the "kbi" command
+ * and tca6408_gpio_init() fail with -ENODEV.
+ */
+&i2c_AO {
+	status = "okay";
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&ao_i2c_master_pins1>;
+
+	gpio_expander: gpio-controller@20 {
+		compatible = "ti,tca6408";
+		reg = <0x20>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	khadas_mcu: khadas-mcu@18 {
+		compatible = "khadas-mcu";
+		reg = <0x18>;
+	};
+};
+
+&pinctrl_periphs {
+	bl_pwm_off_pins:bl_pwm_off_pin {
+		mux {
+			groups = "GPIOH_5";
+			function = "gpio_periphs";
+			output-high;
+		};
+	};
+}; /* end of pinctrl_periphs */

@@ -22,7 +22,16 @@
 #define CHARGE_INPUT_DEFAULT_CUR		6000
 #define CHARGE_INPUT_DEFAULT_VOL		12000
 
+/*
+ * DM i2c bus the FUSB302 sits on. VIM4 has it on i2c6; on VIM3/VIM3L it shares
+ * the AO i2c controller with the KBI MCU and the TCA6408, which the g12a/g12b
+ * device trees alias as i2c4.
+ */
+#if defined(CONFIG_TARGET_KHADAS_VIM3) || defined(CONFIG_TARGET_KHADAS_VIM3L)
+#define FUSB302_I2C_BUS_NUM				4
+#else
 #define FUSB302_I2C_BUS_NUM				6
+#endif
 
 #define FUSB302_INT_GPIO				133 /* GPIOY_4 */
 

@@ -1,43 +1,60 @@
 # function list
 
+# Khadas board targets.
+#
+# These are plain bools rather than "choice" entries on purpose: this file is
+# sourced alongside board/amlogic/Kconfig, which already defines the board
+# selection for each SoC. A "choice" here would force one Khadas board to be
+# selected even when an Amlogic reference board is being built, and the Khadas
+# SYS_BOARD/SYS_CONFIG_NAME defaults would then override the Amlogic ones.
 
+# The KHADAS_* symbols are what the defconfigs select; each pulls in the
+# matching TARGET_KHADAS_* that board/khadas/<board>/Kconfig keys off.
 
 if MESON_T7
-
-choice
-	prompt "T7 Board"
 
 config KHADAS_VIM4
 	bool "Khadas VIM4"
 	select TARGET_KHADAS_VIM4
-	help
-	  Select Khadas VIM4 config
-
-endchoice
 
 config TARGET_KHADAS_VIM4
 	bool "Khadas VIM4 board"
-	depends on KHADAS_VIM4
 
 endif
 
 
 if MESON_S4
 
-choice
-        prompt "S4 Board"
-
 config KHADAS_VIM1S
-        bool "Khadas VIM1S"
-        select TARGET_KHADAS_VIM1S
-        help
-          Select Khadas VIM1S config
-
-endchoice
+	bool "Khadas VIM1S"
+	select TARGET_KHADAS_VIM1S
 
 config TARGET_KHADAS_VIM1S
-        bool "Khadas VIM1S board"
-        depends on KHADAS_VIM1S
+	bool "Khadas VIM1S board"
+
+endif
+
+
+if MESON_G12B
+
+config KHADAS_VIM3
+	bool "Khadas VIM3"
+	select TARGET_KHADAS_VIM3
+
+config TARGET_KHADAS_VIM3
+	bool "Khadas VIM3 board"
+
+endif
+
+
+if MESON_G12A
+
+config KHADAS_VIM3L
+	bool "Khadas VIM3L"
+	select TARGET_KHADAS_VIM3L
+
+config TARGET_KHADAS_VIM3L
+	bool "Khadas VIM3L board"
 
 endif
 
@@ -45,3 +62,5 @@ endif
 
 source "board/khadas/kvim4/Kconfig"
 source "board/khadas/kvim1s/Kconfig"
+source "board/khadas/kvim3/Kconfig"
+source "board/khadas/kvim3l/Kconfig"

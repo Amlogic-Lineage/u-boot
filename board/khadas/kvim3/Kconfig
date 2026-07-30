@@ -1,0 +1,23 @@
+if TARGET_KHADAS_VIM3
+
+config SYS_SOC
+	default "g12b"
+
+config SYS_BOARD
+	default "kvim3"
+
+config SYS_VENDOR
+	default "khadas"
+
+config SYS_CONFIG_NAME
+	default "kvim3"
+
+config CONFIG_AML_ANTIROLLBACK
+	bool
+	default n
+
+config DTB_BIND_KERNEL
+	bool "load dtb from boot part but not flash rsv"
+	default n
+
+endif
