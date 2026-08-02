@@ -185,8 +185,12 @@
 			"run cmdline_keys_base;"\
             "\0"\
         "upgrade_key="\
-			"run upgrade_key_base;"\
-			"echo usr key;"\
+			"saradc open 0 1;"\
+			"if saradc get_in_range 0 200; then "\
+				"echo detect function key, enter recovery;"\
+				"run recovery_from_flash;"\
+			"fi;"\
+			"saradc close;"\
 			"\0"\
 
 #ifndef CONFIG_PXP_DDR
