@@ -6,8 +6,19 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#define CONFIG_RAM_BASE        (0x10000000 + 46 * 1024)
-#define CONFIG_RAM_SIZE         (15 * 1024)
+/*
+ * Must match the bl30/bl301 split that fip/g12a/build.sh actually packs:
+ * blx_bin_limit=40960 (bl30 padded to 40K) and blx01_bin_limit=13312, i.e.
+ * bl301 is loaded at 0x1000A000. Commit abc1ccc86bb ("bl301: change bl30 size
+ * to 46k [2/3]") moved this to 46K/15K, but parts [1/3] and [3/3] - the new
+ * bl30.bin and the matching padding - never landed here: bl30/bin/g12a/bl30.bin
+ * (g12a_v1.1.3522) still hard-codes 0x1000A000 and 0x1000D400. Linking bl301
+ * for 0x1000B800 while BL30 copies it to 0x1000A000 leaves every absolute data
+ * reference 6K short, and the AOCPU dies right after "Inits done" with
+ * "PROCESS EXCEPTION: 06 ... pc :00000000 / Invalid state".
+ */
+#define CONFIG_RAM_BASE        (0x10000000 + 40 * 1024)
+#define CONFIG_RAM_SIZE         (13 * 1024)
 #define CONFIG_RAM_END		(CONFIG_RAM_BASE+CONFIG_RAM_SIZE)
 
 #define CONFIG_TASK_STACK_SIZE	512
