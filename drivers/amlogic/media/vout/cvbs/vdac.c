@@ -345,6 +345,7 @@ void vdac_ctrl_config_probe(void)
 	switch (get_cpu_id().family_id) {
 	case MESON_CPU_MAJOR_ID_G12A:
 	case MESON_CPU_MAJOR_ID_G12B:
+	case MESON_CPU_MAJOR_ID_SM1: /* grouped with g12a/g12b in the 2015 tree */
 		vdac_data = &vdac_data_g12ab;
 		break;
 	case MESON_CPU_MAJOR_ID_SC2:

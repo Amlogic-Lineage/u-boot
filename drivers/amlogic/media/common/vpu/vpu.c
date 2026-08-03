@@ -136,7 +136,7 @@ static struct vpu_data_s vpu_data_tl1 = {
 	.change_clk = change_vpu_clk,
 };
 
-/* static struct vpu_data_s vpu_data_sm1 = {
+static struct vpu_data_s vpu_data_sm1 = {
 	.chip_type = VPU_CHIP_SM1,
 	.chip_name = "sm1",
 	.clk_level_dft = CLK_LEVEL_DFT_G12A,
@@ -147,6 +147,7 @@ static struct vpu_data_s vpu_data_tl1 = {
 	.vpu_clkb_reg = VPU_REG_END,  //no need init clkb
 	.vapb_clk_reg = HHI_VAPBCLK_CNTL,
 	.vid_clk_reg = HHI_VID_CLK_CNTL2,
+	.vpu_read_type = READ0_2,
 
 	.pwrctrl_id_table = NULL,
 
@@ -157,7 +158,8 @@ static struct vpu_data_s vpu_data_tl1 = {
 	.mem_pd_table = vpu_mem_pd_tl1,
 	.power_table = vpu_pwr_gxb,
 	.iso_table = vpu_iso_sm1,
-	.reset_table = vpu_reset_gx,
+	/* vpu_reset_g12a here is what the old tree called vpu_reset_gx */
+	.reset_table = vpu_reset_g12a,
 
 	.module_init_table_cnt = 0,
 	.module_init_table = NULL,
@@ -168,7 +170,6 @@ static struct vpu_data_s vpu_data_tl1 = {
 	.module_init_config = vpu_module_init_config,
 	.change_clk = change_vpu_clk,
 };
-*/
 
 static struct vpu_data_s vpu_data_tm2 = {
 	.chip_type = VPU_CHIP_TM2,
@@ -691,9 +692,9 @@ static void vpu_chip_detect(void)
 	case MESON_CPU_MAJOR_ID_TL1:
 		vpu_conf.data = &vpu_data_tl1;
 		break;
-	//case MESON_CPU_MAJOR_ID_SM1:
-	//	vpu_conf.data = &vpu_data_sm1;
-	//	break;
+	case MESON_CPU_MAJOR_ID_SM1:
+		vpu_conf.data = &vpu_data_sm1;
+		break;
 	case MESON_CPU_MAJOR_ID_TM2:
 		vpu_conf.data = &vpu_data_tm2;
 		break;

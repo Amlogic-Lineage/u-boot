@@ -816,6 +816,12 @@ void vdac_data_config(void)
 		cvbs_drv.data = &cvbs_data_g12a;
 		break;
 	case MESON_CPU_MAJOR_ID_G12B:
+	/*
+	 * sm1 shares the g12b vdac settings (vref_adj 0xf, gsw 0) and the
+	 * same HHI clock registers; without this it fell to the s4d default,
+	 * whose CLKCTRL_* registers do not exist on g12a-family SoCs.
+	 */
+	case MESON_CPU_MAJOR_ID_SM1:
 		cvbs_drv.data = &cvbs_data_g12b;
 		break;
 	case MESON_CPU_MAJOR_ID_SC2:

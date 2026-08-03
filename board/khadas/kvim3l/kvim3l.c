@@ -852,11 +852,24 @@ int usb_get_update_result(void)
 
 phys_size_t get_effective_memsize(void)
 {
-	// >>16 -> MB, <<20 -> real size, so >>16<<20 = <<4
+	/*
+	 * AO_SEC_GP_CFG0[31:16] is the DDR size in MB, so >>16 then <<20.
+	 * Bits [19:16] are NOT part of that size - BL2 leaves flags there.
+	 * On this board an eMMC boot reads 0x0802xxxx where a USB boot reads
+	 * 0x0800xxxx, so taking the full 16 bits yields 2050MB and a ram_top
+	 * of 0x80200000 on a 2 GiB board: u-boot then relocates itself (and
+	 * its page tables) into the 2MB hole past the end of DRAM and dies
+	 * silently right after "Relocating to ...". Round down to 16MB like
+	 * the newer Amlogic boards (a5_av400, ...) do, and keep the shift in
+	 * 64-bit so a 4 GiB part does not wrap to 0.
+	 */
+	phys_size_t ddr_size = ((phys_size_t)((readl(AO_SEC_GP_CFG0) >> 16)
+					      & 0xfff0)) << 20;
+
 #if defined(CONFIG_SYS_MEM_TOP_HIDE)
-	return (((readl(AO_SEC_GP_CFG0)) & 0xFFFF0000) << 4) - CONFIG_SYS_MEM_TOP_HIDE;
+	return ddr_size - CONFIG_SYS_MEM_TOP_HIDE;
 #else
-	return (((readl(AO_SEC_GP_CFG0)) & 0xFFFF0000) << 4);
+	return ddr_size;
 #endif
 }
 
