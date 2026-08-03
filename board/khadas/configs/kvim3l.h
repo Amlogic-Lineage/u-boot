@@ -143,6 +143,8 @@
         "ts050_output=panel\0" \
         "ts101_output=panel\0" \
         "hdmimode=1080p60hz\0" \
+        /* no hdmitx cmd to run "get_preferred_mode", so default it */ \
+        "outputmode=1080p60hz\0" \
         "nativeui=disable\0" \
         "colorattribute=444,8bit\0"\
         "cvbsmode=576cvbs\0" \

@@ -787,6 +787,18 @@ static int get_window_axis(int *axis)
 	def_w = vout_info.width;
 	def_h = vout_info.height;
 
+	/* outputmode is normally set by "hdmitx get_preferred_mode"; without
+	 * an hdmitx driver it can be unset, and every strcmp below would
+	 * dereference NULL.
+	 */
+	if (!mode) {
+		axis[0] = def_x;
+		axis[1] = def_y;
+		axis[2] = def_w;
+		axis[3] = def_h;
+		return 0;
+	}
+
 	/* adjust reproduction ratio */
 	if (strncmp(mode, "480i", 4) == 0) {
 		axis[0] = getenv_int("480i_x", def_x);
