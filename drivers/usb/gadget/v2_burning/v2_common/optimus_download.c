@@ -11,6 +11,18 @@
 #include <asm/io.h>
 #include <asm/arch/mailbox.h>
 #include <asm/arch/cpu_config.h>
+#ifdef CONFIG_AML_GPT
+#include <part_efi.h>
+#include <asm/unaligned.h>
+#include <amlogic/storage.h>
+
+/*
+ * Offset of gpt.bin inside bootloader.img, as written by
+ * device/khadas/common/factory.mk ("dd ... bs=512 seek=7935").
+ * Kept in sync with fb_command.c and cmd/amlogic/bootloader_status.c.
+ */
+#define AML_GPT_OFF_IN_BOOTLOADER	0x3DFE00
+#endif
 
 extern unsigned int get_multi_dt_entry(unsigned long fdt_addr);
 int is_optimus_storage_inited(void);
@@ -116,6 +128,19 @@ static int _assert_logic_partition_cap(const char* thePartName, const uint64_t n
     if (NULL == part_table) return 0;
     if (!strcmp("1", thePartName)) return 0;
 
+#ifdef CONFIG_AML_GPT
+	/*
+	 * part_table is whatever get_partition_from_dts() last parsed. Once the ept
+	 * comes from a real GPT (get_ept_from_gpt() sets gpt_partition), part_table
+	 * is the stale dts table and does not list e.g. bootloader_a/init_boot_a,
+	 * so this sanity check would reject partitions that do exist. The caller
+	 * has already validated imgSz against store_part_size(), which is
+	 * gpt-aware, and this check only ever existed to catch bad nand dts sizes.
+	 */
+	if (gpt_partition)
+		return 0;
+#endif
+
 	for (thePart = part_table; partIndex < MAX_PART_NUM; ++thePart, ++partIndex)
     {
         if (memcmp(thePartName, thePart->name, strnlen(thePartName, MAX_PART_NAME_LEN))) continue;
@@ -202,6 +227,37 @@ static int optimus_download_bootloader_image(struct ImgBurnInfo* pDownInfo, u32 
         DWN_ERR("FAil in program bootloader\n");
         return 0;
     }
+
+#ifdef CONFIG_AML_GPT
+	/*
+	 * The host burning tool only issues "download mem gpt" if it understands
+	 * the bin/gpt item; older tools do not, so _gpt_is_loaded stays 0,
+	 * optimus_storage_init() runs in "dtb part mode" and store_gpt_erase()
+	 * wipes the GPT. The tool does burn 'bootloader' before any partition
+	 * though, and bootloader.img carries gpt.bin at 0x3DFE00 - the same layout
+	 * fastboot relies on in fb_command.c and normal boot in
+	 * bootloader_status.c - so install the GPT from it here.
+	 * mmc_gpt_write() also rebuilds the ept via get_ept_from_gpt()+part_init(),
+	 * which is what lets the later "download store bootloader_a" resolve.
+	 */
+	if ((u32)size >= AML_GPT_OFF_IN_BOOTLOADER + 2 * 512) {
+		const u8 *gptBuf = data + AML_GPT_OFF_IN_BOOTLOADER;
+
+		if (get_unaligned_le64(gptBuf + 512) == GPT_HEADER_SIGNATURE_UBOOT) {
+			DWN_MSG("gpt found in bootloader.img at 0x%x, installing\n",
+					AML_GPT_OFF_IN_BOOTLOADER);
+			/*
+			 * mmc_gpt_write() returns -1 on real failure but otherwise
+			 * passes through write_gpt_alternate() -> mmc_storage_write(),
+			 * which returns the block count on success. Only < 0 is an error.
+			 */
+			if (store_gpt_write((u8 *)gptBuf) < 0)
+				DWN_ERR("Fail to write gpt from bootloader.img\n");
+		} else {
+			DWN_MSG("no gpt embedded in bootloader.img\n");
+		}
+	}
+#endif /* CONFIG_AML_GPT */
 
     return dataSzReceived;
 }

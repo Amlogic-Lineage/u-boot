@@ -178,7 +178,9 @@
         "cvbs_drv=0\0"\
         "osd_reverse=0\0"\
         "video_reverse=0\0"\
-        "lock=10001000\0"\
+        /* lock_s[4]='0' => unlocked => verifiedbootstate=orange; no CONFIG_AVB2 \
+         * here, so u-boot never emits androidboot.vbmeta.* and green is fatal */ \
+        "lock=10000000\0"\
         "active_slot=normal\0"\
         "boot_part=boot\0"\
         "port_mode=0\0"\
@@ -191,7 +193,7 @@
         "Irq_check_en=0\0"\
         "fs_type=""rootfstype=ramfs""\0"\
         "initargs="\
-            "init=/init console=null earlycon=aml-uart,0xff803000 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 "\
+            "init=/init console=ttyAML0,115200 console=ttyS0,115200 no_console_suspend earlycon=aml_uart,0xff803000 keep_bootcon printk.devkmsg=on ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 "\
             "\0"\
         "upgrade_check="\
             "echo upgrade_step=${upgrade_step}; "\
