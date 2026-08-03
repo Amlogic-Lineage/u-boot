@@ -38,6 +38,11 @@ CONFIG_CMD_BOOTCTOL_AVB=y
 # CONFIG_AML_FACTORY_PROVISION needs the OP-TEE client (tee_*) which is not
 # enabled for g12b here; g12b_w400_v1 leaves it off too.
 CONFIG_CMD_WATCHDOG=y
+# get_rebootmode/reboot/systemoff. Without this ${reboot_mode} is never set,
+# and every "if test ${reboot_mode} = ..." in the env degenerates into
+# "test = <word>", which hush reports as "syntax error" and then treats as
+# true - so switch_bootmode takes the factory_reset branch and boots recovery.
+CONFIG_AML_REBOOT=y
 CONFIG_AML_PARTITION=y
 CONFIG_AML_GPT=y
 CONFIG_OF_CONTROL=y

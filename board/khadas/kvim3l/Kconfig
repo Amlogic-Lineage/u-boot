@@ -20,4 +20,14 @@ config DTB_BIND_KERNEL
 	bool "load dtb from boot part but not flash rsv"
 	default n
 
+config AML_REBOOT
+	bool "reboot cmd"
+	default y
+	help
+	  Build the Amlogic reboot command set: reboot, systemoff and
+	  get_rebootmode. The boot environment needs get_rebootmode to
+	  populate ${reboot_mode}; without it every "if test ${reboot_mode}
+	  = ..." in the environment is a syntax error that hush treats as
+	  true, and the board boots into recovery instead of system.
+
 endif
